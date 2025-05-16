@@ -4,6 +4,9 @@ import io
 import sys
 from decimal import Decimal
 
+from eth_utils import event_signature_to_log_topic   # NEW – pip install eth-utils if needed
+
+
 uniswap_v2_factory_abi = [  # Minimal ABI for Factory contract
     {
         "constant": True,
@@ -152,6 +155,56 @@ def calculate_market_cap(pair_contract):
     except Exception as e:
         print(f"Error calculating market cap: {e}")
         return None
+# ---------- SIMPLE RUG-PULL CHECK ---------- #
+def get_liquidity_ratio(pair_contract, token_address):
+    """
+    Returns the percentage of the token's total supply that is locked as
+    liquidity in this Uniswap-V2-style pair.
+    """
+    reserves = pair_contract.functions.getReserves().call()
+    token0 = pair_contract.functions.token0().call()
+    token_decimals = get_token_decimals(token_address)
+
+    # Figure out which reserve belongs to the token we're analysing
+    token_reserve_raw = reserves[0] if token_address.lower() == token0.lower() else reserves[1]
+    token_reserve = Decimal(token_reserve_raw) / Decimal(10 ** token_decimals)
+
+    total_supply_raw = get_token_total_supply(token_address)
+    total_supply = Decimal(total_supply_raw) / Decimal(10 ** token_decimals)
+
+    # Avoid division-by-zero on weird tokens
+    ratio = (token_reserve / total_supply) if total_supply > 0 else Decimal(0)
+    return ratio  # 0-1 scale
+
+def rugpull_check(token_contract, pair_contract, token_address,
+                  min_liquidity_pct=Decimal('0.05')):
+    """
+    Very naive rug-pull heuristic:
+      • FAIL if liquidity ratio ≤ min_liquidity_pct
+      • FAIL if token is mintable
+    Returns dict with details + overall verdict.
+    """
+    liquidity_ratio = get_liquidity_ratio(pair_contract, token_address)
+    mint_info = check_minting_ability(token_contract)
+
+    fail_reasons = []
+    if liquidity_ratio <= min_liquidity_pct:
+        fail_reasons.append(f"Liquidity ratio only {liquidity_ratio*100:.2f}% (≤ {min_liquidity_pct*100}%)")
+    if mint_info["mintable"]:
+        fail_reasons.append("Token contract can still mint new supply")
+
+    return {
+        "liquidityRatio": liquidity_ratio,
+        "mintable": mint_info["mintable"],
+        "verdict": "FAIL" if fail_reasons else "PASS",
+        "reasons": fail_reasons
+    }
+# ---------- END RUG-PULL CHECK ---------- #
+
+
+# If High volume with low number of holders, rug
+# If low volume with high number of holders, safe
+
 
 # Main execution
 pair_info = find_pair_by_token(input_token_address)
@@ -224,6 +277,24 @@ minting_status = check_minting_ability(token_contract)
 print(f"Mint Status: {'MINTABLE' if minting_status['mintable'] else 'NOT MINTABLE'}")
 print(f"Total Supply Status: {minting_status['supplyStatus']}")
 
+
+# Rug-pull Heuristic
+print("\n🚨 RUG-PULL HEURISTIC")
+print("-" * 40)
+rug = rugpull_check(token_contract, pair_contract, input_token)
+print(f"Liquidity / Supply Ratio: {rug['liquidityRatio']*100:.2f}%")
+print(f"Mintable: {'YES' if rug['mintable'] else 'NO'}")
+
+if rug["verdict"] == "PASS":
+    print("✅ Verdict: PASS – no blatant red flags")
+else:
+    print("❌ Verdict: FAIL – potential risks detected")
+    for r in rug["reasons"]:
+        print(f"  • {r}")
+
+
+
+
 print("\n" + "=" * 80)
 print("End of Report")
 print("=" * 80)
@@ -233,7 +304,7 @@ sys.stdout = sys.__stdout__
 output_text = buffer.getvalue()
 
 # Save to text file
-txt_filename = '/data/outputs/report.txt'
+txt_filename = '/Users/jonas/Ocean-Node-workshop/results/result-output_2025-05-16T18-40-01-188Z_extracted/outputs/report.txt'
 with open(txt_filename, 'w') as f:
     f.write(output_text)
 

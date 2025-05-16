@@ -81,3 +81,12 @@ indicators. The results are saved into a text report (`report.txt`) titled "TOKE
 
 ## 🔐 Disclaimer
 This tool is for research and educational purposes. It is not a financial advice tool.
+
+
+
+
+Changes made:
+If theres theres high volume with a low number of wallets then this is a rug
+if theres a low level of volume with low lwallet count or high volume with high wallet count then this is safe
+
+Liquidity-Ratio / Mintability check – flags tokens whose liquidity pool holds ≤ 5 % of total supply or whose contract can still mint new tokens

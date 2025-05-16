@@ -1,0 +1,43 @@
+Connected to Base Chain
+✅ Output saved to /data/outputs/report.txt 
+
+================================================================================
+🔍 TOKEN ANALYSIS REPORT
+================================================================================
+Generated on: 2025-05-16 18:39:56
+--------------------------------------------------------------------------------
+
+📊 TOKEN INFORMATION
+----------------------------------------
+Token Address: 0x768BE13e1680b5ebE0024C42c896E3dB59ec0149
+Token Name: SKI MASK DOG
+Token Symbol: SKI
+
+🔄 PAIR TOKEN INFORMATION
+----------------------------------------
+Pair Token Address: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+Pair Token Name: USD Coin
+Pair Token Symbol: USDC
+
+💧 LIQUIDITY INFORMATION
+----------------------------------------
+Liquidity Pair Address: 0xff2e500e91f45Ab1Da1a71ca7EE30Ed3501D8777
+Total Supply of LP Tokens: 1000
+
+💰 MARKET ANALYSIS
+----------------------------------------
+Reserve SKI: 387278893
+Reserve USDC: 35393
+Price per SKI: 0.09138892059371797471028197759 USDC
+Total Supply: 1000000000
+Market Cap: 91388920.59371797471028197759 USDC
+
+🪄 SUPPLY ANALYSIS
+----------------------------------------
+Mint Status: NOT MINTABLE
+Total Supply Status: FIXED
+
+================================================================================
+End of Report
+================================================================================
+
